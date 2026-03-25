@@ -585,6 +585,9 @@
             filteredKeys.sort((a, b) => {
                 let isSoldA = (inventoryStatus[a] && inventoryStatus[a].isSold === true) ? 1 : 0;
                 let isSoldB = (inventoryStatus[b] && inventoryStatus[b].isSold === true) ? 1 : 0;
+                if (isSoldA === isSoldB) {
+        return b.localeCompare(a); 
+    }
                 return isSoldA - isSoldB; 
             });
 
