@@ -530,7 +530,7 @@
             document.getElementById('modalDescBox').style.display = desc.trim() !== "" ? "block" : "none";
             document.getElementById('modalDesc').innerText = desc;
             
-            const productLink = `https://9098038573.github.io/Anami-ka-jwellers/product-detail.html?id=${id}`;
+            const productLink = `https://9098038573.github.io/Anamika-Jwellers/product-detail.html?id=${id}`;
             const waMsg = `Hi Anamika Jewellers, mujhe is item ki enquiry karni hai:\n\n*Item:* ${item.title || id.toUpperCase()}\n*Code:* ${id.toUpperCase()}\n*Weight:* ${item.weight || 'N/A'}\n*Link:* ${productLink}`;
             document.getElementById('modalWaBtn').href = `https://wa.me/919977441399?text=${encodeURIComponent(waMsg)}`;
             
