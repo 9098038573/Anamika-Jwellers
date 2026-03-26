@@ -197,6 +197,7 @@
             <li><a href="#"><i class="fa-solid fa-house"></i> Home</a></li>
             <li><a href="#"><i class="fa-solid fa-ring"></i> Collections</a></li>
             <li><a href="https://wa.me/919977441399" target="_blank"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a></li>
+            <li><a href="#" onclick="closeNavMenu(); openQrScanner(); return false;"><i class="fa-solid fa-qrcode"></i> Smart Scan</a></li>
         </ul>
     </div>
 
@@ -559,6 +560,7 @@
                 document.getElementById('modalWaBtn').innerText = "Inquiry on WhatsApp"; 
             }
             modal.style.display = "flex"; document.body.style.overflow = "hidden";
+            history.pushState({ popupOpen: true }, null, window.location.href);
         }
 
         function renderNextBatch() {
@@ -586,8 +588,8 @@
                 let isSoldA = (inventoryStatus[a] && inventoryStatus[a].isSold === true) ? 1 : 0;
                 let isSoldB = (inventoryStatus[b] && inventoryStatus[b].isSold === true) ? 1 : 0;
                 if (isSoldA === isSoldB) {
-        return b.localeCompare(a); 
-    }
+                    return b.localeCompare(a); 
+                }
                 return isSoldA - isSoldB; 
             });
 
@@ -617,9 +619,9 @@
                     barWidth: '0%', 
                     isTimerPlaying: false,
                     tracks: [
-                        { name: "Live Radio", artist: "Anamika Suron Ka Sangam", cover: "http://anamikajwellers.mobie.in/img/live_radio.jpg", source: "https://stream.zeno.fm/lua2hdjq7ziuv" },
+                        { name: "Live Radio", artist: "Anamika Suron Ka Sangam", cover: "https://anamikajwellers.mobie.in/img/live_radio.jpg", source: "https://stream.zeno.fm/lua2hdjq7ziuv" },
                         
-                        { name: "Mashup Special", artist: "Anamika jewellers", cover: "http://anamikajwellers.mobie.in/img/mashup_special.jpg", source: "https://stream.zeno.fm/cvg6um80pkjuv" }
+                        { name: "Mashup Special", artist: "Anamika jewellers", cover: "https://anamikajwellers.mobie.in/img/mashup_special.jpg", source: "https://stream.zeno.fm/cvg6um80pkjuv" }
                     ],
                     currentTrack: null,
                     currentTrackIndex: 0
@@ -698,10 +700,29 @@
         }
 
         function closePopup() { 
-            document.getElementById('productModal').style.display = "none"; 
+            const modal = document.getElementById('productModal');
+            if (modal.style.display === "none") return; // Agar pehle se band hai to kuch mat karo
+            
+            modal.style.display = "none"; 
             document.body.style.overflow = "auto"; 
             resetZoom(); 
+            
+            // Agar user ne 'X' dabaya ya bahar click kiya hai, to history se wo dummy state hata do
+            if (history.state && history.state.popupOpen) {
+                window.history.back();
+            }
         }
+
+        // Naya Event Listener: Jo mobile ke 'Back' button ko detect karega
+        window.addEventListener('popstate', function(event) {
+            const modal = document.getElementById('productModal');
+            if (modal && modal.style.display === "flex") {
+                // Agar popup khula hai aur back button dabaya gaya, to sirf popup band karo
+                modal.style.display = "none";
+                document.body.style.overflow = "auto";
+                resetZoom();
+            }
+        });
 
         window.onclick = function(event) {
             const modal = document.getElementById('productModal');
