@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
     
@@ -121,6 +122,22 @@
         
         .gift-item { position: relative; background: white; padding: 10px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); text-align: center; overflow: hidden; border: 1px solid #f0f0f0; cursor: pointer; display: flex; flex-direction: column; height: 100%; }
         
+        /* --- LIKE BUTTON CSS --- */
+        .like-btn { position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.9); border: none; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 5; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: 0.3s; }
+        .like-btn i { color: #ccc; transition: 0.3s; font-size: 16px; }
+        .like-btn.liked i { color: #e74c3c; }
+
+        /* --- Sirf Popup Wale Like Button Ko Bada Karne Ke Liye --- */
+        #modalLikeBtn {
+            width: 45px !important;
+            height: 45px !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        #modalLikeBtn i {
+            font-size: 22px !important; 
+        }
+
         /* IMAGE FADE-IN CSS */
         .gift-item img { 
             width: 100%; 
@@ -166,10 +183,41 @@
         .ring-anim { display: inline-block; width: 30px; height: 30px; border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #d4af37; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         [v-cloak] { display: none; }
+
+        /* --- LOGIN SYSTEM CSS --- */
+        .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fdfaf0; z-index: 9999999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        .login-box { background: white; padding: 30px 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 90%; max-width: 380px; text-align: center; border: 2px solid #d4af37; }
+        .login-box h2 { font-family: 'Playfair Display', serif; color: #d4af37; margin-bottom: 5px; font-size: 22px;}
+        .login-input { width: 100%; padding: 12px; margin: 10px 0; border: 1.5px solid #eee; border-radius: 10px; font-size: 16px; outline: none; text-align: center; letter-spacing: 1px; font-family: 'Poppins', sans-serif;}
+        .login-input:focus { border-color: #d4af37; background: #fffaf0; }
+        .login-btn { background: #d4af37; color: white; border: none; padding: 14px; width: 100%; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 10px rgba(212,175,55,0.3); transition: 0.2s;}
+        .login-btn:active { transform: scale(0.96); }
+        .login-logo { width: 80px; height: 80px; margin-bottom: 15px; border-radius: 50%; border: 2px solid #d4af37; padding: 10px; background: #fffaf0;}
+        .divider { display: flex; align-items: center; text-align: center; margin: 15px 0; }
+        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #eee; }
+        .divider span { padding: 0 10px; color: #999; font-size: 12px; font-weight: 600; }
     </style>
 </head>
 <body>
     
+    <div id="loginModal" class="login-overlay" style="display: none;">
+        <div class="login-box">
+            <img src="https://i.ibb.co/zhHnrgPs/logo.jpg" class="login-logo" alt="Logo">
+            <h2 id="authTitle">Login</h2>
+            <p style="font-size: 12px; color: #666; margin-bottom: 20px;">Kripya apna mobile number darj karein.</p>
+            
+            <input type="tel" id="userPhone" class="login-input" placeholder="Mobile Number (e.g. 9876543210)">
+            <input type="password" id="userPass" class="login-input" placeholder="Password darj karein">
+            
+            <button class="login-btn" id="authBtn" onclick="handleAuth()" style="margin-top:10px;">Login</button>
+            
+            <div style="color: #d4af37; font-size: 13px; cursor: pointer; margin-top: 15px; font-weight: 600; text-decoration: underline;" id="toggleLink" onclick="toggleAuthMode()">Naya account banayein? Sign Up</div>
+
+            <p id="loginError" style="color: #e74c3c; font-size: 12px; margin-top: 15px; display: none; font-weight: 600; line-height: 1.4;"></p>
+        </div>
+        <div style="position: absolute; bottom: 20px; font-size: 11px; color: #888;">Anamika Jewellers - Since 1981</div>
+    </div>
+
     <div class="header">
         <div class="disable-select">
             <div class="hader-01">ANAMIKA JEWELLER'S</div> 
@@ -194,10 +242,12 @@
             <button id="closeNavDrawerBtn" class="close-nav-btn">×</button>
         </div>
         <ul class="drawer-links">
-            <li><a href="#"><i class="fa-solid fa-house"></i> Home</a></li>
+            <li><a href="#" onclick="closeNavMenu(); filterByCategory('all'); return false;"><i class="fa-solid fa-house"></i> Home</a></li>
             <li><a href="#"><i class="fa-solid fa-ring"></i> Collections</a></li>
+            <li><a href="#" onclick="closeNavMenu(); showFavorites(); return false;"><i class="fa-solid fa-heart" style="color: #e74c3c;"></i> My Favorites</a></li>
             <li><a href="https://wa.me/919977441399" target="_blank"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a></li>
             <li><a href="#" onclick="closeNavMenu(); openQrScanner(); return false;"><i class="fa-solid fa-qrcode"></i> Smart Scan</a></li>
+            <li><a href="#" onclick="closeNavMenu(); logoutUser(); return false;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
         </ul>
     </div>
 
@@ -205,7 +255,7 @@
         <div class="search-container">
             <div class="category-scroll-wrapper" id="chipContainer">
                 <div class="cat-card active" onclick="filterByCategory('all', this)">
-                    <div class="cat-thumb" style="background-image: url('https://img.icons8.com/ios-filled/50/d4af37/diamond-ring.png'); background-size: 30px; background-repeat: no-repeat; background-color: #fffaf0;"></div>
+                    <div class="cat-thumb" style="background-image: url('https://i.ibb.co/zhHnrgPs/logo.jpg'); background-size: 60px; background-repeat: no-repeat; background-color: #fffaf0;"></div>
                     <span class="cat-name">SABHI</span>
                 </div>
             </div>
@@ -221,8 +271,13 @@
     </div>
 
     <div class="search-nav" id="searchNav">
-        <span onclick="window.location.href=window.location.pathname" class="back-link">← Sabhi Dekhen</span>
+        <span onclick="window.history.back()" class="back-link">← Back</span>
         <p id="searchStatus" style="margin-top:15px; font-size: 13px; color: #555; font-weight: 600;"></p>
+    </div>
+
+    <div id="favoritesBanner" style="display: none; padding: 10px 20px; max-width: 800px; margin: auto;">
+        <span onclick="window.history.back()" class="back-link">← Back</span>
+        <h3 style="margin-top: 15px; font-family: 'Playfair Display', serif; color: #e74c3c;"><i class="fa-solid fa-heart"></i> Meri Pasand</h3>
     </div>
 
     <div class="container01" id="main-product-list"></div>
@@ -234,6 +289,9 @@
             <div id="modalSoldBanner" style="background:#e74c3c; color:white; text-align:center; padding:8px; font-weight:bold; display:none; border-radius: 20px 20px 0 0;">SOLD OUT</div>
             <div class="modal-body">
                 <div class="img-zoom-wrapper">
+                    <button id="modalLikeBtn" class="like-btn" onclick="toggleLike(this.getAttribute('data-id'), event)" style="position: absolute; bottom: 10px; left: 10px; z-index: 10;">
+                        <i class="fa-regular fa-heart"></i>
+                    </button>
                     <img id="modalImg" src="" class="modal-img">
                 </div>
                 <div style="text-align: right; margin-top: 10px;">
@@ -369,7 +427,7 @@
             navDrawer.classList.remove('open');
             navOverlay.classList.remove('active');
             document.body.style.overflow = "auto";
-            setTimeout(() => { navDrawer.style.transform = 'translateY(0)'; }, 400); // Reset transform after animation
+            setTimeout(() => { navDrawer.style.transform = 'translateY(0)'; }, 400); 
         };
         
         document.getElementById('closeNavDrawerBtn').addEventListener('click', closeNavMenu);
@@ -383,7 +441,7 @@
         navDrawer.addEventListener('touchstart', (e) => {
             drawerStartY = e.touches[0].clientY;
             isDrawerDragging = true;
-            navDrawer.style.transition = 'none'; // Taki finger ke sath smooth chale
+            navDrawer.style.transition = 'none'; 
         }, { passive: true });
 
         navDrawer.addEventListener('touchmove', (e) => {
@@ -391,7 +449,7 @@
             drawerCurrentY = e.touches[0].clientY;
             let deltaY = drawerCurrentY - drawerStartY;
             
-            if (deltaY > 0) { // Sirf niche ki taraf drag karne par
+            if (deltaY > 0) { 
                 navDrawer.style.transform = `translateY(${deltaY}px)`;
             }
         }, { passive: true });
@@ -399,12 +457,12 @@
         navDrawer.addEventListener('touchend', () => {
             if (!isDrawerDragging) return;
             isDrawerDragging = false;
-            navDrawer.style.transition = 'bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.15), transform 0.3s ease'; // Wapas animation on
+            navDrawer.style.transition = 'bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.15), transform 0.3s ease'; 
             
             let deltaY = drawerCurrentY - drawerStartY;
-            if (deltaY > 80) { // Agar 80px se zyada niche khincha toh band kar do
+            if (deltaY > 80) { 
                 closeNavMenu();
-            } else { // Warna wapas upar snap kar do
+            } else { 
                 navDrawer.style.transform = 'translateY(0)';
             }
             drawerCurrentY = 0;
@@ -433,9 +491,7 @@
                         window.location.href = window.location.pathname + "?search=" + encodeURIComponent(decodedText);
                     }
                 },
-                (errorMessage) => {
-                    // Ignore background errors
-                }
+                (errorMessage) => {}
             ).catch((err) => {
                 alert("Live Camera nahi khul paya. Local file ke jagah ise Netlify par chalayein.");
                 closeQrScanner();
@@ -456,6 +512,7 @@
         }
         // ------------------------------
 
+        // --- FIREBASE SETUP & AUTHENTICATION LOGIC ---
         const firebaseConfig = {
             apiKey: "AIzaSyBoY6noSIMt-YiIVOY7yNiYsKqQLgGmk_M",
             authDomain: "anamika-jwellers.firebaseapp.com",
@@ -464,17 +521,138 @@
         };
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
+        const auth = firebase.auth();
 
         let productData = {}; let inventoryStatus = {}; let allKeys = []; let currentIndex = 0;
-        const itemsPerPage = 06; let isFetching = false;
+        let userLikes = {}; 
+        let showingFavoritesOnly = false; 
+        let currentState = 'home'; // NAYA VARIABLE BACK BUTTON KO TRACK KARNE KE LIYE
+        const itemsPerPage = 06; let isFetching = false; let isDataFetched = false;
+        let isProductsLoaded = false; let isInventoryLoaded = false; 
 
-        database.ref('/').on('value', (snap) => {
-            const data = snap.val() || {};
-            productData = data.products || {};
-            inventoryStatus = data.inventory || {};
-            updateDynamicThumbs();
-            initDisplay();
+        // --- NAYA MOBILE LOGIN LOGIC ---
+        let isLoginMode = true; // CHANGED: Ab pehle Login page khulega
+
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            document.getElementById('authTitle').innerText = isLoginMode ? "Login" : "Sign Up";
+            document.getElementById('authBtn').innerText = isLoginMode ? "Login" : "Create Account";
+            document.getElementById('toggleLink').innerText = isLoginMode ? "Naya account banayein? Sign Up" : "Pehle se account hai? Login karein";
+            document.getElementById('userPass').placeholder = isLoginMode ? "Password darj karein" : "Password banayein";
+        }
+
+        function handleAuth() {
+            let phone = document.getElementById('userPhone').value.trim();
+            let pass = document.getElementById('userPass').value.trim();
+            let errorMsg = document.getElementById('loginError');
+            errorMsg.style.display = 'none';
+
+            phone = phone.replace('+91', '').trim();
+
+            if(phone.length < 10 || pass.length < 6) {
+                errorMsg.innerText = "Sahi Mobile Number (10 digits) aur Password (kam se kam 6 akshar) dalein.";
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            let fakeEmail = phone + "@anamikajewellers.com";
+            document.getElementById('authBtn').innerText = "Processing...";
+
+            if(isLoginMode) {
+                auth.signInWithEmailAndPassword(fakeEmail, pass).catch(err => {
+                    errorMsg.innerText = "Login Failed: " + err.message;
+                    errorMsg.style.display = 'block';
+                    document.getElementById('authBtn').innerText = "Login";
+                });
+            } else {
+                auth.createUserWithEmailAndPassword(fakeEmail, pass).catch(err => {
+                    errorMsg.innerText = "Sign Up Failed: " + err.message;
+                    errorMsg.style.display = 'block';
+                    document.getElementById('authBtn').innerText = "Create Account";
+                });
+            }
+        }
+
+        // --- LIKE SYSTEM FUNCTIONS ---
+        function toggleLike(productId, event) {
+            if (event) event.stopPropagation(); 
+            
+            const user = auth.currentUser;
+            if (!user) {
+                alert("Kripya pehle login karein!");
+                return;
+            }
+
+            const likeRef = database.ref('users/' + user.uid + '/likes/' + productId);
+            
+            if (userLikes[productId]) {
+                likeRef.remove(); 
+                if(showingFavoritesOnly) {
+                   const card = document.querySelector(`.like-btn[data-id="${productId}"]`).closest('.gift-item');
+                   if(card) card.style.display = 'none';
+                }
+            } else {
+                likeRef.set(true); 
+            }
+        }
+
+        function listenToUserLikes(uid) {
+            database.ref('users/' + uid + '/likes').on('value', (snapshot) => {
+                userLikes = snapshot.val() || {};
+                
+                const allLikeBtns = document.querySelectorAll('.like-btn');
+                allLikeBtns.forEach(btn => {
+                    const id = btn.getAttribute('data-id');
+                    if (id) {
+                        if (userLikes[id]) {
+                            btn.classList.add('liked');
+                            btn.querySelector('i').className = 'fa-solid fa-heart';
+                        } else {
+                            btn.classList.remove('liked');
+                            btn.querySelector('i').className = 'fa-regular fa-heart';
+                        }
+                    }
+                });
+            });
+        }
+        // -----------------------------------
+
+        // Check Login Status & Fetch Data
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                document.getElementById('loginModal').style.display = 'none';
+                document.body.style.overflow = "auto";
+                
+                listenToUserLikes(user.uid); 
+                
+                if(!isDataFetched) {
+                    database.ref('products').on('value', (snap) => {
+                        productData = snap.val() || {};
+                        isProductsLoaded = true;
+                        if (isInventoryLoaded && !showingFavoritesOnly && currentState === 'home') { updateDynamicThumbs(); initDisplay(); }
+                    });
+                    
+                    database.ref('inventory').on('value', (snap) => {
+                        inventoryStatus = snap.val() || {};
+                        isInventoryLoaded = true;
+                        if (isProductsLoaded && !showingFavoritesOnly && currentState === 'home') { updateDynamicThumbs(); initDisplay(); }
+                    });
+                    
+                    isDataFetched = true;
+                }
+            } else {
+                document.getElementById('loginModal').style.display = 'flex';
+                document.body.style.overflow = "hidden";
+            }
         });
+
+        // --- LOGOUT FUNCTION ---
+        function logoutUser() {
+            auth.signOut().then(() => {
+                window.location.reload(); 
+            });
+        }
+        // ---------------------------------------------
 
         function updateDynamicThumbs() {
             const container = document.getElementById('chipContainer');
@@ -486,7 +664,7 @@
                     if (!categories[catName]) categories[catName] = item.image;
                 }
             });
-            container.innerHTML = `<div class="cat-card active" onclick="filterByCategory('all', this)"><div class="cat-thumb" style="background-image: url('https://img.icons8.com/ios-filled/50/d4af37/diamond-ring.png'); background-size: 30px; background-repeat: no-repeat; background-color: #fffaf0;"></div><span class="cat-name">SABHI</span></div>`;
+            container.innerHTML = `<div class="cat-card active" onclick="filterByCategory('all', this)"><div class="cat-thumb" style="background-image: url('https://i.ibb.co/zhHnrgPs/logo.jpg'); background-size: 60px; background-repeat: no-repeat; background-color: #fffaf0;"></div><span class="cat-name">SABHI</span></div>`;
             Object.keys(categories).sort().forEach(cat => {
                 const card = document.createElement('div');
                 card.className = 'cat-card'; card.onclick = () => filterByCategory(cat, card);
@@ -496,6 +674,8 @@
         }
 
         function initDisplay() {
+            showingFavoritesOnly = false;
+            document.getElementById('favoritesBanner').style.display = "none";
             const container = document.getElementById('main-product-list'); container.innerHTML = "";
             const urlParams = new URLSearchParams(window.location.search);
             const q = urlParams.get('search');
@@ -507,21 +687,44 @@
         }
 
         function setupIntersectionObserver() {
-            const observer = new IntersectionObserver((entries) => { if (entries[0].isIntersecting && !isFetching && !new URLSearchParams(window.location.search).has('search')) renderNextBatch(); }, { rootMargin: '300px' });
+            const observer = new IntersectionObserver((entries) => { if (entries[0].isIntersecting && !isFetching && !new URLSearchParams(window.location.search).has('search') && !showingFavoritesOnly && currentState === 'home') renderNextBatch(); }, { rootMargin: '300px' });
             observer.observe(document.getElementById('loader-ring'));
         }
 
         function createCard(id, container) {
             const item = productData[id]; if(!item) return;
             const isSold = inventoryStatus[id] && inventoryStatus[id].isSold === true;
-            // ONLOAD OPACITY ADD KIYA GAYA HAI YAHAN
-            const itemHtml = `<div class="gift-item ${isSold ? 'is-sold' : ''}" onclick="openPopup('${id}')"><div class="sold-tag" style="display: ${isSold ? 'block' : 'none'}">SOLD OUT</div><img src="${item.image}" alt="${item.title || id}" loading="lazy" onload="this.style.opacity=1"><span class="item-label">${item.title || id}</span><span class="item-weight">${item.weight || "0"}gm</span><div class="buy-btn">${isSold ? 'Sold Out' : 'Explore'}</div></div>`;
+            
+            const isLikedClass = userLikes[id] ? 'liked' : '';
+            const heartIconClass = userLikes[id] ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+
+            const itemHtml = `<div class="gift-item ${isSold ? 'is-sold' : ''}" onclick="openPopup('${id}')">
+                <button class="like-btn ${isLikedClass}" data-id="${id}" onclick="toggleLike('${id}', event)">
+                    <i class="${heartIconClass}"></i>
+                </button>
+                <div class="sold-tag" style="display: ${isSold ? 'block' : 'none'}">SOLD OUT</div>
+                <img src="${item.image}" alt="${item.title || id}" loading="lazy" onload="this.style.opacity=1">
+                <span class="item-label">${item.title || id}</span>
+                <span class="item-weight">${item.weight || "0"}gm</span>
+                <div class="buy-btn">${isSold ? 'Sold Out' : 'Explore'}</div>
+            </div>`;
             container.insertAdjacentHTML('beforeend', itemHtml);
         }
 
         function openPopup(id) {
             const item = productData[id]; const inv = inventoryStatus[id];
             const modal = document.getElementById('productModal');
+            
+            const modalLikeBtn = document.getElementById('modalLikeBtn');
+            modalLikeBtn.setAttribute('data-id', id);
+            if (userLikes[id]) {
+                modalLikeBtn.classList.add('liked');
+                modalLikeBtn.querySelector('i').className = 'fa-solid fa-heart';
+            } else {
+                modalLikeBtn.classList.remove('liked');
+                modalLikeBtn.querySelector('i').className = 'fa-regular fa-heart';
+            }
+
             document.getElementById('modalImg').src = item.image;
             document.getElementById('modalTitle').innerText = item.title || "Jewellery Item";
             document.getElementById('modalPurity').innerText = item.purity || "22K / 916";
@@ -535,7 +738,6 @@
             const waMsg = `Hi Anamika Jewellers, mujhe is item ki enquiry karni hai:\n\n*Item:* ${item.title || id.toUpperCase()}\n*Code:* ${id.toUpperCase()}\n*Weight:* ${item.weight || 'N/A'}\n*Link:* ${productLink}`;
             document.getElementById('modalWaBtn').href = `https://wa.me/919977441399?text=${encodeURIComponent(waMsg)}`;
             
-            // --- NEW CODE: Set Favicon to Product Image & Update Forward Link ---
             let faviconLink = document.querySelector("link[rel~='icon']");
             if (!faviconLink) {
                 faviconLink = document.createElement('link');
@@ -546,7 +748,6 @@
 
             const forwardMsg = `Yeh design dekhein Anamika Jewellers se:\n\n*${item.title || id.toUpperCase()}*\nLink: ${productLink}`;
             document.getElementById('modalForwardBtn').href = `https://wa.me/?text=${encodeURIComponent(forwardMsg)}`;
-            // -------------------------------------------------------------------
 
             if (inv && inv.isSold === true) { 
                 document.getElementById('modalSoldBanner').style.display = 'block'; 
@@ -571,6 +772,8 @@
         }
 
         function showSearchPage(query) {
+            showingFavoritesOnly = false;
+            document.getElementById('favoritesBanner').style.display = "none";
             const container = document.getElementById('main-product-list'); 
             const nav = document.getElementById('searchNav');
             container.innerHTML = ""; 
@@ -587,9 +790,7 @@
             filteredKeys.sort((a, b) => {
                 let isSoldA = (inventoryStatus[a] && inventoryStatus[a].isSold === true) ? 1 : 0;
                 let isSoldB = (inventoryStatus[b] && inventoryStatus[b].isSold === true) ? 1 : 0;
-                if (isSoldA === isSoldB) {
-                    return b.localeCompare(a); 
-                }
+                if (isSoldA === isSoldB) { return b.localeCompare(a); }
                 return isSoldA - isSoldB; 
             });
 
@@ -598,10 +799,65 @@
         }
 
         function handleSearch(e) { if (e.key === 'Enter') { const val = document.getElementById('mainSearch').value.trim(); if (val) window.location.href = window.location.pathname + "?search=" + encodeURIComponent(val); } }
+        
         function filterByCategory(category, el) {
-            document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('active')); if(el) el.classList.add('active');
-            if (category === "all") { window.location.href = window.location.pathname; return; }
+            showingFavoritesOnly = false;
+            document.getElementById('favoritesBanner').style.display = "none";
+            document.getElementById('searchNav').style.display = "none";
+            document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('active')); 
+            
+            if(el) {
+                el.classList.add('active'); 
+            } else {
+                const sabhiCard = document.querySelector('.cat-card:first-child');
+                if(sabhiCard) sabhiCard.classList.add('active');
+            }
+            
+            if (category === "all") { 
+                currentState = 'home';
+                initDisplay(); 
+                return; 
+            }
+
+            // NAYA LOGIC: History push karne ke liye
+            if (currentState === 'home') {
+                history.pushState({ view: 'category' }, null, window.location.href);
+            } else if (currentState === 'favorites') {
+                history.replaceState({ view: 'category' }, null, window.location.href);
+            }
+            currentState = 'category';
+
             showSearchPage(category);
+        }
+
+        function showFavorites() {
+            // NAYA LOGIC: History push karne ke liye
+            if (currentState === 'home') {
+                history.pushState({ view: 'favorites' }, null, window.location.href);
+            } else if (currentState === 'category') {
+                history.replaceState({ view: 'favorites' }, null, window.location.href);
+            }
+            currentState = 'favorites';
+            
+            showingFavoritesOnly = true;
+            const container = document.getElementById('main-product-list');
+            container.innerHTML = "";
+            document.getElementById('searchNav').style.display = "none";
+            document.getElementById('favoritesBanner').style.display = "block";
+            document.getElementById('loader-ring').style.display = "none";
+            
+            document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('active'));
+
+            const likedKeys = Object.keys(userLikes).filter(id => userLikes[id] === true && productData[id]);
+            
+            if (likedKeys.length === 0) {
+                container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: #777;">
+                    <i class="fa-solid fa-heart-crack" style="font-size: 40px; color: #ddd; margin-bottom: 10px;"></i>
+                    <p>Aapne abhi tak koi jewelry like nahi ki hai.</p>
+                </div>`;
+            } else {
+                likedKeys.forEach(id => createCard(id, container));
+            }
         }
 
         function closeAllWidgets() {
@@ -701,26 +957,29 @@
 
         function closePopup() { 
             const modal = document.getElementById('productModal');
-            if (modal.style.display === "none") return; // Agar pehle se band hai to kuch mat karo
+            if (modal.style.display === "none") return; 
             
             modal.style.display = "none"; 
             document.body.style.overflow = "auto"; 
             resetZoom(); 
             
-            // Agar user ne 'X' dabaya ya bahar click kiya hai, to history se wo dummy state hata do
             if (history.state && history.state.popupOpen) {
                 window.history.back();
             }
         }
 
-        // Naya Event Listener: Jo mobile ke 'Back' button ko detect karega
+        // --- BACK BUTTON LOGIC UPDATE ---
         window.addEventListener('popstate', function(event) {
             const modal = document.getElementById('productModal');
             if (modal && modal.style.display === "flex") {
-                // Agar popup khula hai aur back button dabaya gaya, to sirf popup band karo
                 modal.style.display = "none";
                 document.body.style.overflow = "auto";
                 resetZoom();
+            } 
+            else if (currentState === 'favorites' || currentState === 'category') {
+                // Agar Favorites ya Category par the, to Back dabane par wapas 'Sabhi' par chale jao
+                currentState = 'home';
+                filterByCategory('all');
             }
         });
 
