@@ -203,15 +203,15 @@
     <div id="loginModal" class="login-overlay" style="display: none;">
         <div class="login-box">
             <img src="https://i.ibb.co/zhHnrgPs/logo.jpg" class="login-logo" alt="Logo">
-            <h2 id="authTitle">Sign Up</h2>
+            <h2 id="authTitle">Login</h2>
             <p style="font-size: 12px; color: #666; margin-bottom: 20px;">Kripya apna mobile number darj karein.</p>
             
             <input type="tel" id="userPhone" class="login-input" placeholder="Mobile Number (e.g. 9876543210)">
-            <input type="password" id="userPass" class="login-input" placeholder="Password Banayein">
+            <input type="password" id="userPass" class="login-input" placeholder="Password darj karein">
             
-            <button class="login-btn" id="authBtn" onclick="handleAuth()" style="margin-top:10px;">Create Account</button>
+            <button class="login-btn" id="authBtn" onclick="handleAuth()" style="margin-top:10px;">Login</button>
             
-            <div style="color: #d4af37; font-size: 13px; cursor: pointer; margin-top: 15px; font-weight: 600; text-decoration: underline;" id="toggleLink" onclick="toggleAuthMode()">Pehle se account hai? Login karein</div>
+            <div style="color: #d4af37; font-size: 13px; cursor: pointer; margin-top: 15px; font-weight: 600; text-decoration: underline;" id="toggleLink" onclick="toggleAuthMode()">Naya account banayein? Sign Up</div>
 
             <p id="loginError" style="color: #e74c3c; font-size: 12px; margin-top: 15px; display: none; font-weight: 600; line-height: 1.4;"></p>
         </div>
@@ -531,7 +531,7 @@
         let isProductsLoaded = false; let isInventoryLoaded = false; 
 
         // --- NAYA MOBILE LOGIN LOGIC ---
-        let isLoginMode = false;
+        let isLoginMode = true; // CHANGED: Ab pehle Login page khulega
 
         function toggleAuthMode() {
             isLoginMode = !isLoginMode;
