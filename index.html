@@ -156,9 +156,6 @@
         .buy-btn { display: block; padding: 7px; background: #d4af37; color: #000 !important; text-decoration: none; border-radius: 15px; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-top: auto; }
         .sold-tag { position: absolute; top: 12px; left: -32px; background: #e74c3c; color: white; padding: 5px 35px; font-size: 9px; font-weight: bold; transform: rotate(-45deg); z-index: 2; }
         
-        .rotating { animation: rotate 10s linear infinite; }
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal-content { width: 95%; max-width: 500px; padding:10px; background: white; border-radius: 20px; position: relative; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -183,7 +180,6 @@
         #loader-ring { text-align: center; padding: 30px; width: 100%; }
         .ring-anim { display: inline-block; width: 30px; height: 30px; border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #d4af37; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        [v-cloak] { display: none; }
 
         /* --- LOGIN SYSTEM CSS --- */
         .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fdfaf0; z-index: 9999999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
@@ -244,7 +240,7 @@
         </div>
         <ul class="drawer-links">
             <li><a href="#" onclick="closeNavMenu(); filterByCategory('all'); return false;"><i class="fa-solid fa-house"></i> Home</a></li>
-            <li><a href="go:Live radio"><i class="fa-solid fa-radio"></i> Live Radio</a></li>
+            <li><a href="#"><i class="fa-solid fa-ring"></i> Collections</a></li>
             <li><a href="#" onclick="closeNavMenu(); showFavorites(); return false;"><i class="fa-solid fa-heart" style="color: #e74c3c;"></i> My Favorites</a></li>
             <li><a href="https://wa.me/919977441399" target="_blank"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a></li>
             <li><a href="#" onclick="closeNavMenu(); openQrScanner(); return false;"><i class="fa-solid fa-qrcode"></i> Smart Scan</a></li>
@@ -282,6 +278,7 @@
     </div>
 
     <div class="container01" id="main-product-list"></div>
+    
     <div id="loader-ring"><div class="ring-anim"></div><p style="font-size:12px; color:#d4af37; margin-top:5px;">Loading...</p></div>
 
     <div id="productModal" class="modal-overlay">
@@ -634,10 +631,16 @@
             });
         }
 
+        // --- YAHAN GALTI THEEK KI GAYI HAI ---
         function initDisplay() {
             showingFavoritesOnly = false;
             document.getElementById('favoritesBanner').style.display = "none";
-            const container = document.getElementById('main-product-list'); container.innerHTML = "";
+            const container = document.getElementById('main-product-list'); 
+            container.innerHTML = "";
+            
+            // YEH LINE JODI GAYI HAI: Taki wapas aane par scroll sahi se kaam kare
+            document.getElementById('loader-ring').style.display = "block";
+            
             const urlParams = new URLSearchParams(window.location.search);
             const q = urlParams.get('search');
             if (q) { showSearchPage(q); } else {
@@ -647,10 +650,19 @@
             }
         }
 
+        let scrollObserver = null; // YEH NAYA ADD KIYA HAI MULTIPLE LOAD ROKNE KE LIYE
         function setupIntersectionObserver() {
-            const observer = new IntersectionObserver((entries) => { if (entries[0].isIntersecting && !isFetching && !new URLSearchParams(window.location.search).has('search') && !showingFavoritesOnly && currentState === 'home') renderNextBatch(); }, { rootMargin: '300px' });
-            observer.observe(document.getElementById('loader-ring'));
+            if (scrollObserver) {
+                scrollObserver.disconnect();
+            }
+            scrollObserver = new IntersectionObserver((entries) => { 
+                if (entries[0].isIntersecting && !isFetching && !new URLSearchParams(window.location.search).has('search') && !showingFavoritesOnly && currentState === 'home') {
+                    renderNextBatch(); 
+                }
+            }, { rootMargin: '300px' });
+            scrollObserver.observe(document.getElementById('loader-ring'));
         }
+        // ------------------------------------
 
         function createCard(id, container) {
             const item = productData[id]; if(!item) return;
