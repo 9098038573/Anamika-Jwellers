@@ -189,14 +189,11 @@
         .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fdfaf0; z-index: 9999999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
         .login-box { background: white; padding: 30px 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 90%; max-width: 380px; text-align: center; border: 2px solid #d4af37; }
         .login-box h2 { font-family: 'Playfair Display', serif; color: #d4af37; margin-bottom: 5px; font-size: 22px;}
-        .login-input { width: 100%; padding: 12px; margin: 15px 0 10px; border: 1.5px solid #eee; border-radius: 10px; font-size: 16px; outline: none; text-align: center; letter-spacing: 1px; font-family: 'Poppins', sans-serif;}
+        .login-input { width: 100%; padding: 12px; margin: 10px 0; border: 1.5px solid #eee; border-radius: 10px; font-size: 16px; outline: none; text-align: center; letter-spacing: 1px; font-family: 'Poppins', sans-serif;}
         .login-input:focus { border-color: #d4af37; background: #fffaf0; }
         .login-btn { background: #d4af37; color: white; border: none; padding: 14px; width: 100%; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 10px rgba(212,175,55,0.3); transition: 0.2s;}
         .login-btn:active { transform: scale(0.96); }
         .login-logo { width: 80px; height: 80px; margin-bottom: 15px; border-radius: 50%; border: 2px solid #d4af37; padding: 10px; background: #fffaf0;}
-        .google-btn { background: white; color: #444; border: 1.5px solid #ddd; padding: 12px; width: 100%; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px; transition: 0.2s; font-family: 'Poppins', sans-serif;}
-        .google-btn:active { background: #f4f4f4; transform: scale(0.96); }
-        .google-btn img { width: 20px; }
         .divider { display: flex; align-items: center; text-align: center; margin: 15px 0; }
         .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #eee; }
         .divider span { padding: 0 10px; color: #999; font-size: 12px; font-weight: 600; }
@@ -207,44 +204,33 @@
     <div id="loginModal" class="login-overlay" style="display: none;">
         <div class="login-box">
             <img src="https://i.ibb.co/zhHnrgPs/logo.jpg" class="login-logo" alt="Logo">
-            <h2>Welcome Back</h2>
-            <p style="font-size: 12px; color: #666; margin-bottom: 20px;">Please login to view our exclusive collections.</p>
+            <h2 id="authTitle">Login</h2>
+            <p style="font-size: 12px; color: #666; margin-bottom: 20px;">Kripya apna mobile number darj karein.</p>
             
-            <button class="google-btn" onclick="signInWithGoogle()">
-                <img src="https://img.icons8.com/color/48/000000/google-logo.png" alt="G"> Continue with Google
-            </button>
+            <input type="tel" id="userPhone" class="login-input" placeholder="Mobile Number (e.g. 9876543210)">
+            <input type="password" id="userPass" class="login-input" placeholder="Password darj karein">
+            
+            <button class="login-btn" id="authBtn" onclick="handleAuth()" style="margin-top:10px;">Login</button>
+            
+            <div style="color: #d4af37; font-size: 13px; cursor: pointer; margin-top: 15px; font-weight: 600; text-decoration: underline;" id="toggleLink" onclick="toggleAuthMode()">Naya account banayein? Sign Up</div>
 
-            <div class="divider"><span>OR</span></div>
-            
-            <div id="phoneStep">
-                <input type="tel" id="phoneNumber" class="login-input" placeholder="Enter Mobile Number" value="+91">
-                <button class="login-btn" onclick="sendOTP()" id="sendOtpBtn">Get OTP</button>
-            </div>
-
-            <div id="otpStep" style="display: none;">
-                <p style="font-size: 12px; color: #2e7d32; font-weight: 600;">OTP sent successfully!</p>
-                <input type="number" id="otpCode" class="login-input" placeholder="Enter 6-digit OTP">
-                <button class="login-btn" onclick="verifyOTP()" id="verifyOtpBtn">Verify & Login</button>
-                <button onclick="window.location.reload()" style="background:none; border:none; color:#d4af37; font-size:12px; margin-top:15px; cursor:pointer; font-weight:600;">Edit Number</button>
-            </div>
-            
-            <div id="recaptcha-container" style="margin-top: 15px; display: flex; justify-content: center;"></div>
             <p id="loginError" style="color: #e74c3c; font-size: 12px; margin-top: 15px; display: none; font-weight: 600; line-height: 1.4;"></p>
         </div>
         <div style="position: absolute; bottom: 20px; font-size: 11px; color: #888;">Anamika Jewellers - Since 1981</div>
     </div>
+
     <div class="header">
         <div class="disable-select">
             <div class="hader-01">ANAMIKA JEWELLER'S</div> 
             <div class="hader-02">since 1981</div>
         </div>
         <svg class="waves" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
-            <defs><path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" /></defs>
+            <defs><path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" ></path></defs>
             <g class="parallax">
-                <use xlink:href="#gentle-wave" x="48" y="0" fill="rgba(255,255,255,0.7)" />
-                <use xlink:href="#gentle-wave" x="48" y="3" fill="rgba(255,255,255,0.5)" />
-                <use xlink:href="#gentle-wave" x="48" y="5" fill="rgba(255,255,255,0.3)" />
-                <use xlink:href="#gentle-wave" x="48" y="7" fill="#fff" />
+                <use xlink:href="#gentle-wave" x="48" y="0" fill="rgba(255,255,255,0.7)" ></use>
+                <use xlink:href="#gentle-wave" x="48" y="3" fill="rgba(255,255,255,0.5)" ></use>
+                <use xlink:href="#gentle-wave" x="48" y="5" fill="rgba(255,255,255,0.3)" ></use>
+                <use xlink:href="#gentle-wave" x="48" y="7" fill="#fff" ></use>
             </g>
         </svg>
     </div>
@@ -581,78 +567,6 @@
             }
         }
 
-        // --- GOOGLE LOGIN FUNCTION ---
-        function signInWithGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            const errorMsg = document.getElementById('loginError');
-            errorMsg.style.display = 'none';
-            
-            auth.signInWithPopup(provider).catch((error) => {
-                errorMsg.innerText = "Google Login Failed: " + error.message;
-                errorMsg.style.display = 'block';
-            });
-        }
-
-        // --- OTP LOGIN FUNCTIONS ---
-        window.recaptchaVerifier = null;
-        function setupRecaptcha() {
-            if (!window.recaptchaVerifier) {
-                window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-                    'size': 'invisible'
-                });
-            }
-        }
-
-        function sendOTP() {
-            let phone = document.getElementById('phoneNumber').value.trim();
-            const errorMsg = document.getElementById('loginError');
-            errorMsg.style.display = 'none';
-
-            if (!phone.startsWith('+')) { phone = '+91' + phone; }
-
-            if(phone.length < 12) {
-                errorMsg.innerText = "Sahi mobile number daalein (10 digits).";
-                errorMsg.style.display = 'block';
-                return;
-            }
-
-            document.getElementById('sendOtpBtn').innerText = "Sending OTP...";
-            
-            auth.signInWithPhoneNumber(phone, window.recaptchaVerifier)
-                .then((result) => {
-                    window.confirmationResult = result;
-                    document.getElementById('phoneStep').style.display = 'none';
-                    document.getElementById('otpStep').style.display = 'block';
-                }).catch((error) => {
-                    errorMsg.innerText = "OTP Error: " + error.message + " (Check Firebase Plan)";
-                    errorMsg.style.display = 'block';
-                    document.getElementById('sendOtpBtn').innerText = "Get OTP";
-                    if(window.recaptchaVerifier) { window.recaptchaVerifier.render().then(widgetId => grecaptcha.reset(widgetId)); }
-                });
-        }
-
-        function verifyOTP() {
-            const code = document.getElementById('otpCode').value.trim();
-            const errorMsg = document.getElementById('loginError');
-            errorMsg.style.display = 'none';
-
-            if(code.length !== 6) {
-                errorMsg.innerText = "Kripya 6-digit ka OTP daalein.";
-                errorMsg.style.display = 'block';
-                return;
-            }
-
-            document.getElementById('verifyOtpBtn').innerText = "Verifying...";
-
-            window.confirmationResult.confirm(code).then((result) => {
-                // Login Success
-            }).catch((error) => {
-                errorMsg.innerText = "Galat OTP. Kripya dobara try karein.";
-                errorMsg.style.display = 'block';
-                document.getElementById('verifyOtpBtn').innerText = "Verify & Login";
-            });
-        }
-
         function toggleLike(productId, event) {
             if (event) event.stopPropagation(); 
             
@@ -695,12 +609,40 @@
             });
         }
 
+        function listenForNotifications() {
+            database.ref('global_notification').on('value', (snap) => {
+                const noti = snap.val();
+                if (noti && noti.title && noti.timestamp) {
+                    const lastSeen = localStorage.getItem('lastSeenNoti');
+                    if (!lastSeen || parseInt(lastSeen) < noti.timestamp) {
+                        Swal.fire({
+                            html: `
+                                <div style="text-align:center;">
+                                    <div style="font-size: 40px; margin-bottom: 10px;">📢</div>
+                                    <h2 style="font-family: 'Playfair Display', serif; color: #e91e63; margin-bottom: 10px; font-size: 20px;">${noti.title}</h2>
+                                    <p style="font-size: 13px; color: #555; line-height: 1.5;">${noti.body}</p>
+                                </div>
+                            `,
+                            showConfirmButton: true,
+                            confirmButtonColor: '#d4af37',
+                            confirmButtonText: 'Theek Hai',
+                            backdrop: `rgba(0,0,0,0.6)`
+                        }).then(() => {
+                            localStorage.setItem('lastSeenNoti', noti.timestamp.toString());
+                        });
+                    }
+                }
+            });
+        }
+
+        // Notification sirf app kholte hi unhe dikhega jo logged in hain
         auth.onAuthStateChanged((user) => {
             if (user) {
                 document.getElementById('loginModal').style.display = 'none';
                 document.body.style.overflow = "auto";
                 
                 listenToUserLikes(user.uid); 
+                listenForNotifications(); 
                 
                 if(!isDataFetched) {
                     database.ref('products').on('value', (snap) => {
@@ -720,7 +662,6 @@
             } else {
                 document.getElementById('loginModal').style.display = 'flex';
                 document.body.style.overflow = "hidden";
-                setupRecaptcha();
             }
         });
 
@@ -837,6 +778,7 @@
                 document.getElementById('modalWaBtn').innerText = "Inquiry on WhatsApp"; 
             }
             modal.style.display = "flex"; document.body.style.overflow = "hidden";
+            
             history.pushState({ popupOpen: true }, null, window.location.href);
         }
 
@@ -895,7 +837,6 @@
                 return; 
             }
 
-            // NAYA LOGIC: History push karne ke liye
             if (currentState === 'home') {
                 history.pushState({ view: 'category' }, null, window.location.href);
             } else if (currentState === 'favorites') {
@@ -907,7 +848,6 @@
         }
 
         function showFavorites() {
-            // NAYA LOGIC: History push karne ke liye
             if (currentState === 'home') {
                 history.pushState({ view: 'favorites' }, null, window.location.href);
             } else if (currentState === 'category') {
@@ -1030,12 +970,11 @@
             modalImg.style.transform = `translate(0px, 0px) scale(1)`;
         }
 
-        // --- BACK BUTTON LOGIC YAHAN THEEK KIYA GAYA HAI ---
+        // --- BACK BUTTON LOGIC ---
         function closePopup() { 
             const modal = document.getElementById('productModal');
             if (modal.style.display === "none") return; 
 
-            // Ab sirf history mein back jayenge, baaki popup khud band ho jayega (niche wale code se)
             if (history.state && history.state.popupOpen) {
                 window.history.back();
             } else {
@@ -1048,21 +987,19 @@
         window.addEventListener('popstate', function(event) {
             const modal = document.getElementById('productModal');
             
-            // Agar popup khula hua hai, toh iska matlab back button popup band karne ke liye dabaya gaya hai
             if (modal && modal.style.display === "flex") {
                 modal.style.display = "none";
                 document.body.style.overflow = "auto";
                 resetZoom();
-                return; // Yahin ruk jao, aage mat badho, list refresh mat karo
+                return; 
             } 
             
-            // Agar popup nahi khula tha, tab dekho ki view change karna hai ya nahi
             if (currentState === 'favorites' || currentState === 'category') {
                 currentState = 'home';
                 filterByCategory('all');
             }
         });
-        // --------------------------------------------------
+        // -----------------------
 
         window.onclick = function(event) {
             const modal = document.getElementById('productModal');
