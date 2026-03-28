@@ -15,6 +15,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
     
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
@@ -182,6 +183,7 @@
         #loader-ring { text-align: center; padding: 30px; width: 100%; }
         .ring-anim { display: inline-block; width: 30px; height: 30px; border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #d4af37; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        [v-cloak] { display: none; }
 
         /* --- LOGIN SYSTEM CSS --- */
         .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fdfaf0; z-index: 9999999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
@@ -242,7 +244,7 @@
         </div>
         <ul class="drawer-links">
             <li><a href="#" onclick="closeNavMenu(); filterByCategory('all'); return false;"><i class="fa-solid fa-house"></i> Home</a></li>
-            <li><a href="#"><i class="fa-solid fa-ring"></i> Collections</a></li>
+            <li><a href="go:Live radio"><i class="fa-solid fa-radio"></i> Live Radio</a></li>
             <li><a href="#" onclick="closeNavMenu(); showFavorites(); return false;"><i class="fa-solid fa-heart" style="color: #e74c3c;"></i> My Favorites</a></li>
             <li><a href="https://wa.me/919977441399" target="_blank"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a></li>
             <li><a href="#" onclick="closeNavMenu(); openQrScanner(); return false;"><i class="fa-solid fa-qrcode"></i> Smart Scan</a></li>
@@ -325,6 +327,61 @@
             <h3 style="margin-bottom: 15px; font-family: 'Playfair Display', serif; color: #d4af37;">Smart Scan</h3>
             <div id="qr-reader" style="width: 100%; border: none; border-radius: 12px; overflow: hidden; background: #f4f4f4;"></div>
             <p style="font-size: 11px; color: #777; margin-top: 15px;">QR Code ya Barcode scan karein</p>
+        </div>
+    </div>
+
+    <div id="aj-overlay" onclick="closeAllWidgets()" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.1); z-index: 99998; display: none;"></div>
+    
+    <div id="app" v-cloak>
+        <div id="aj-widgets-wrap">
+            <div @click="toggleWidget('ajRadioDrawer')" style="position: fixed; right: 0; top: 63%; padding: 6px 10px; color: white; cursor: pointer; z-index: 99999; display: flex; align-items: center; gap: 5px; font-size: 10px; font-weight: bold; border-radius: 15px 0 0 15px; background: #673ab7;">
+                <i class="fa-solid fa-radio"></i> <span>Radio</span>
+            </div>
+            <div @click="toggleWidget('ajCricketDrawer')" style="position: fixed; right: 0; top: 68%; padding: 6px 10px; color: white; cursor: pointer; z-index: 99999; display: flex; align-items: center; border-radius: 15px 0 0 15px; box-shadow: -2px 4px 10px rgba(0,0,0,0.15); background: #2e7d32;">
+                <span style="font-size: 13px; margin-right: 4px; line-height: 1;">🏏</span> <span style="font-size: 10px; font-weight: bold;">Score</span>
+            </div>
+            <div @click="toggleWidget('ajGoldDrawer')" style="position: fixed; right: 0; top: 73%; padding: 6px 10px; color: white; cursor: pointer; z-index: 99999; display: flex; align-items: center; gap: 5px; font-size: 10px; font-weight: bold; border-radius: 15px 0 0 15px; box-shadow: -2px 4px 10px rgba(0,0,0,0.15); background: #d4af37;">
+                <i class="fa-solid fa-coins"></i> <span>Bhav</span>
+            </div>
+        </div>
+
+        <div id="ajRadioDrawer" style="position: fixed; top: 33%; right: 0; width: 230px; transform: translate(110%, -50%); transition: 0.5s; z-index: 1000000; background: white; border-radius: 20px 0 0 25px; border: 1px solid #673ab7; overflow: hidden;">
+            <div style="padding: 0px 15px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #673ab7, #9c27b0); color: white;">
+                <span style="font-weight: bold; font-size: 11px;">ANAMIKA RADIO</span>
+                <span onclick="closeAllWidgets()" style="cursor: pointer; font-size: 24px;">×</span>
+            </div>
+            <div style="padding: 15px; text-align: center;">
+                <div style="width: 100px; height: 100px; margin: 0 auto 15px; border-radius: 50px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.2); background: #eee;">
+                    <img :src="currentTrack.cover" :class="{ 'rotating': isTimerPlaying }" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div style="font-family: 'Bitter', serif; font-weight: bold; font-size: 16px;">{{ currentTrack.name }}</div>
+                <div style="font-size: 12px; color: #673ab7; margin-bottom: 10px;">{{ currentTrack.artist }}</div>
+                <div @click="clickProgress" style="width: 100%; height: 6px; background: #e0e0e0; border-radius: 10px; cursor: pointer; margin-bottom: 15px;">
+                    <div :style="{ width: barWidth }" style="height: 100%; background: #673ab7; border-radius: 10px; transition: width 0.1s linear;"></div>
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; gap: 20px;">
+                    <i @click="prevTrack" class="fa-solid fa-backward-step" style="color:#673ab7; cursor:pointer; font-size: 20px;"></i>
+                    <div @click="play" style="width: 50px; height: 50px; background: #673ab7; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(103,58,183,0.3);">
+                        <i :class="isTimerPlaying ? 'fa-solid fa-pause' : 'fa-solid fa-play'"></i>
+                    </div>
+                    <i @click="nextTrack" class="fa-solid fa-forward-step" style="color:#673ab7; cursor:pointer; font-size: 20px;"></i>
+                </div>
+            </div>
+        </div>
+
+        <div id="ajCricketDrawer" style="position: fixed; top: 40%; right: 0; width: 230px; transform: translate(110%, -50%); transition: 0.5s; z-index: 1000000; background: white; border-radius: 20px 0 0 20px; border: 1px solid #2e7d32; overflow: hidden;">
+            <div style="padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; background: #e8f5e9; color: #1b5e20;">
+                <span style="font-weight:bold; font-size:11px;">LIVE SCORE</span>
+                <span onclick="closeAllWidgets()" style="cursor: pointer; font-size: 24px;">×</span>
+            </div>
+            <iframe width="100%" height="150" src="https://www.youtube.com/embed/eueA1LGhqlk?si=_o4FdKubOIpe9ywr&controls=0" frameborder="0" loading="lazy"></iframe>
+        </div>
+        <div id="ajGoldDrawer" style="position: fixed; top: 40%; right: 0; width: 260px; transform: translate(110%, -50%); transition: 0.5s; z-index: 1000000; background: white; border-radius: 20px 0 0 20px; border: 1px solid #d4af37; overflow: hidden;">
+            <div style="padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; background: #fdfaf0; color: #8a6d3b;">
+                <span style="font-weight:bold; font-size:11px;">GOLD PRICE</span>
+                <span onclick="closeAllWidgets()" style="cursor: pointer; font-size: 24px;">×</span>
+            </div>
+            <iframe src="https://www.goldpriceindia.com/wmshare-wlifop-001.php" style="width: 100%; height: 150px; border: none;" loading="lazy"></iframe>
         </div>
     </div>
 
@@ -552,6 +609,7 @@
             });
         }
 
+        // --- NOTIFICATION FUNCTION ---
         function listenForNotifications() {
             database.ref('global_notification').on('value', (snap) => {
                 const noti = snap.val();
@@ -577,14 +635,16 @@
                 }
             });
         }
+        // ------------------------------
 
+        // Yahan par hum check kar rahe hain user login hai ya nahi
         auth.onAuthStateChanged((user) => {
             if (user) {
                 document.getElementById('loginModal').style.display = 'none';
                 document.body.style.overflow = "auto";
                 
                 listenToUserLikes(user.uid); 
-                listenForNotifications(); 
+                listenForNotifications(); // NOTIFICATION SIRF YAHAN CHALEGA (Login ke baad)
                 
                 if(!isDataFetched) {
                     database.ref('products').on('value', (snap) => {
@@ -817,6 +877,86 @@
             }
         }
 
+        function closeAllWidgets() {
+            ['ajRadioDrawer', 'ajCricketDrawer', 'ajGoldDrawer'].forEach(id => {
+                const el = document.getElementById(id); if(el) el.style.transform = "translate(110%, -50%)";
+            });
+            document.getElementById('aj-overlay').style.display = 'none';
+        }
+
+        new Vue({
+            el: "#app",
+            data() {
+                return {
+                    audio: new Audio(), 
+                    barWidth: '0%', 
+                    isTimerPlaying: false,
+                    tracks: [
+                        { name: "Live Radio", artist: "Anamika Suron Ka Sangam", cover: "https://anamikajwellers.mobie.in/img/live_radio.jpg", source: "https://stream.zeno.fm/lua2hdjq7ziuv" },
+                        
+                        { name: "Mashup Special", artist: "Anamika jewellers", cover: "https://anamikajwellers.mobie.in/img/mashup_special.jpg", source: "https://stream.zeno.fm/cvg6um80pkjuv" }
+                    ],
+                    currentTrack: null,
+                    currentTrackIndex: 0
+                };
+            },
+            methods: {
+                toggleWidget(id) {
+                    const target = document.getElementById(id);
+                    const isOpen = target.style.transform === "translate(0%, -50%)";
+                    closeAllWidgets();
+                    if (!isOpen) { target.style.transform = "translate(0%, -50%)"; document.getElementById('aj-overlay').style.display = 'block'; }
+                },
+                updateMetadata() {
+                    if ('mediaSession' in navigator) {
+                        navigator.mediaSession.metadata = new MediaMetadata({
+                            title: this.currentTrack.name,
+                            artist: this.currentTrack.artist,
+                            album: 'Anamika Jewellers',
+                            artwork: [{ src: this.currentTrack.cover, sizes: '512x512', type: 'image/png' }]
+                        });
+                    }
+                },
+                play() { 
+                    if (this.audio.paused) { 
+                        this.audio.play().then(() => { 
+                            this.isTimerPlaying = true; 
+                            this.updateMetadata();
+                        });
+                    } else { this.audio.pause(); this.isTimerPlaying = false; } 
+                },
+                nextTrack() {
+                    this.currentTrackIndex = (this.currentTrackIndex + 1) % this.tracks.length;
+                    this.resetPlayer();
+                },
+                prevTrack() {
+                    this.currentTrackIndex = (this.currentTrackIndex - 1 + this.tracks.length) % this.tracks.length;
+                    this.resetPlayer();
+                },
+                resetPlayer() {
+                    this.audio.src = this.tracks[this.currentTrackIndex].source;
+                    this.currentTrack = this.tracks[this.currentTrackIndex];
+                    if (this.isTimerPlaying) this.audio.play();
+                    this.updateMetadata();
+                },
+                clickProgress(e) { 
+                    if(!this.audio.duration) return; 
+                    let perc = (e.pageX - e.currentTarget.getBoundingClientRect().left) / e.currentTarget.offsetWidth; 
+                    this.audio.currentTime = this.audio.duration * perc; 
+                }
+            },
+            created() { 
+                this.currentTrack = this.tracks[0]; 
+                this.audio.src = this.currentTrack.source; 
+                this.audio.ontimeupdate = () => { 
+                    if (this.audio.duration) {
+                        this.barWidth = ((this.audio.currentTime / this.audio.duration) * 100) + "%"; 
+                    }
+                };
+                this.audio.onended = () => { this.nextTrack(); };
+            }
+        });
+        
         const modalImg = document.getElementById('modalImg');
         let scale = 1;
         let panning = false;
@@ -831,6 +971,7 @@
             modalImg.style.transform = `translate(0px, 0px) scale(1)`;
         }
 
+        // --- BACK BUTTON LOGIC YAHAN THEEK KIYA GAYA HAI ---
         function closePopup() { 
             const modal = document.getElementById('productModal');
             if (modal.style.display === "none") return; 
@@ -859,6 +1000,7 @@
                 filterByCategory('all');
             }
         });
+        // --------------------------------------------------
 
         window.onclick = function(event) {
             const modal = document.getElementById('productModal');
