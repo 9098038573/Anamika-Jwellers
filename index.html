@@ -17,6 +17,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
     
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <script src="https://unpkg.com/html5-qrcode"></script>
 
     <style>
@@ -127,7 +129,6 @@
         .like-btn i { color: #ccc; transition: 0.3s; font-size: 16px; }
         .like-btn.liked i { color: #e74c3c; }
 
-        /* --- Sirf Popup Wale Like Button Ko Bada Karne Ke Liye --- */
         #modalLikeBtn {
             width: 45px !important;
             height: 45px !important;
@@ -224,12 +225,12 @@
             <div class="hader-02">since 1981</div>
         </div>
         <svg class="waves" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
-            <defs><path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" /></defs>
+            <defs><path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" ></path></defs>
             <g class="parallax">
-                <use xlink:href="#gentle-wave" x="48" y="0" fill="rgba(255,255,255,0.7)" />
-                <use xlink:href="#gentle-wave" x="48" y="3" fill="rgba(255,255,255,0.5)" />
-                <use xlink:href="#gentle-wave" x="48" y="5" fill="rgba(255,255,255,0.3)" />
-                <use xlink:href="#gentle-wave" x="48" y="7" fill="#fff" />
+                <use xlink:href="#gentle-wave" x="48" y="0" fill="rgba(255,255,255,0.7)" ></use>
+                <use xlink:href="#gentle-wave" x="48" y="3" fill="rgba(255,255,255,0.5)" ></use>
+                <use xlink:href="#gentle-wave" x="48" y="5" fill="rgba(255,255,255,0.3)" ></use>
+                <use xlink:href="#gentle-wave" x="48" y="7" fill="#fff" ></use>
             </g>
         </svg>
     </div>
@@ -412,7 +413,6 @@
     </footer>
 
     <script>
-        // --- SMART DRAWER LOGIC ADDED ---
         const navOverlay = document.getElementById('navOverlay');
         const navDrawer = document.getElementById('navDrawer');
         
@@ -433,7 +433,6 @@
         document.getElementById('closeNavDrawerBtn').addEventListener('click', closeNavMenu);
         navOverlay.addEventListener('click', closeNavMenu);
 
-        // --- SWIPE DOWN TO CLOSE LOGIC ---
         let drawerStartY = 0;
         let drawerCurrentY = 0;
         let isDrawerDragging = false;
@@ -467,9 +466,7 @@
             }
             drawerCurrentY = 0;
         });
-        // --------------------------------
 
-        // --- QR SCANNER DIRECT CAMERA LOGIC ---
         let html5QrCode = null;
 
         function openQrScanner() {
@@ -510,9 +507,7 @@
                 });
             }
         }
-        // ------------------------------
 
-        // --- FIREBASE SETUP & AUTHENTICATION LOGIC ---
         const firebaseConfig = {
             apiKey: "AIzaSyBoY6noSIMt-YiIVOY7yNiYsKqQLgGmk_M",
             authDomain: "anamika-jwellers.firebaseapp.com",
@@ -526,12 +521,11 @@
         let productData = {}; let inventoryStatus = {}; let allKeys = []; let currentIndex = 0;
         let userLikes = {}; 
         let showingFavoritesOnly = false; 
-        let currentState = 'home'; // NAYA VARIABLE BACK BUTTON KO TRACK KARNE KE LIYE
+        let currentState = 'home';
         const itemsPerPage = 06; let isFetching = false; let isDataFetched = false;
         let isProductsLoaded = false; let isInventoryLoaded = false; 
 
-        // --- NAYA MOBILE LOGIN LOGIC ---
-        let isLoginMode = true; // CHANGED: Ab pehle Login page khulega
+        let isLoginMode = true; 
 
         function toggleAuthMode() {
             isLoginMode = !isLoginMode;
@@ -573,7 +567,6 @@
             }
         }
 
-        // --- LIKE SYSTEM FUNCTIONS ---
         function toggleLike(productId, event) {
             if (event) event.stopPropagation(); 
             
@@ -615,15 +608,41 @@
                 });
             });
         }
-        // -----------------------------------
 
-        // Check Login Status & Fetch Data
+        function listenForNotifications() {
+            database.ref('global_notification').on('value', (snap) => {
+                const noti = snap.val();
+                if (noti && noti.title && noti.timestamp) {
+                    const lastSeen = localStorage.getItem('lastSeenNoti');
+                    if (!lastSeen || parseInt(lastSeen) < noti.timestamp) {
+                        Swal.fire({
+                            html: `
+                                <div style="text-align:center;">
+                                    <div style="font-size: 40px; margin-bottom: 10px;">📢</div>
+                                    <h2 style="font-family: 'Playfair Display', serif; color: #e91e63; margin-bottom: 10px; font-size: 20px;">${noti.title}</h2>
+                                    <p style="font-size: 13px; color: #555; line-height: 1.5;">${noti.body}</p>
+                                </div>
+                            `,
+                            showConfirmButton: true,
+                            confirmButtonColor: '#d4af37',
+                            confirmButtonText: 'Theek Hai',
+                            backdrop: `rgba(0,0,0,0.6)`
+                        }).then(() => {
+                            localStorage.setItem('lastSeenNoti', noti.timestamp.toString());
+                        });
+                    }
+                }
+            });
+        }
+
+        // Notification sirf app kholte hi unhe dikhega jo logged in hain
         auth.onAuthStateChanged((user) => {
             if (user) {
                 document.getElementById('loginModal').style.display = 'none';
                 document.body.style.overflow = "auto";
                 
                 listenToUserLikes(user.uid); 
+                listenForNotifications(); 
                 
                 if(!isDataFetched) {
                     database.ref('products').on('value', (snap) => {
@@ -646,13 +665,11 @@
             }
         });
 
-        // --- LOGOUT FUNCTION ---
         function logoutUser() {
             auth.signOut().then(() => {
                 window.location.reload(); 
             });
         }
-        // ---------------------------------------------
 
         function updateDynamicThumbs() {
             const container = document.getElementById('chipContainer');
@@ -761,6 +778,7 @@
                 document.getElementById('modalWaBtn').innerText = "Inquiry on WhatsApp"; 
             }
             modal.style.display = "flex"; document.body.style.overflow = "hidden";
+            
             history.pushState({ popupOpen: true }, null, window.location.href);
         }
 
@@ -819,7 +837,6 @@
                 return; 
             }
 
-            // NAYA LOGIC: History push karne ke liye
             if (currentState === 'home') {
                 history.pushState({ view: 'category' }, null, window.location.href);
             } else if (currentState === 'favorites') {
@@ -831,7 +848,6 @@
         }
 
         function showFavorites() {
-            // NAYA LOGIC: History push karne ke liye
             if (currentState === 'home') {
                 history.pushState({ view: 'favorites' }, null, window.location.href);
             } else if (currentState === 'category') {
@@ -940,7 +956,6 @@
             }
         });
         
-        /* --- Advanced Pinch to Zoom & Drag Limit Logic --- */
         const modalImg = document.getElementById('modalImg');
         let scale = 1;
         let panning = false;
@@ -955,33 +970,36 @@
             modalImg.style.transform = `translate(0px, 0px) scale(1)`;
         }
 
+        // --- BACK BUTTON LOGIC ---
         function closePopup() { 
             const modal = document.getElementById('productModal');
             if (modal.style.display === "none") return; 
-            
-            modal.style.display = "none"; 
-            document.body.style.overflow = "auto"; 
-            resetZoom(); 
-            
+
             if (history.state && history.state.popupOpen) {
                 window.history.back();
+            } else {
+                modal.style.display = "none"; 
+                document.body.style.overflow = "auto"; 
+                resetZoom(); 
             }
         }
 
-        // --- BACK BUTTON LOGIC UPDATE ---
         window.addEventListener('popstate', function(event) {
             const modal = document.getElementById('productModal');
+            
             if (modal && modal.style.display === "flex") {
                 modal.style.display = "none";
                 document.body.style.overflow = "auto";
                 resetZoom();
+                return; 
             } 
-            else if (currentState === 'favorites' || currentState === 'category') {
-                // Agar Favorites ya Category par the, to Back dabane par wapas 'Sabhi' par chale jao
+            
+            if (currentState === 'favorites' || currentState === 'category') {
                 currentState = 'home';
                 filterByCategory('all');
             }
         });
+        // -----------------------
 
         window.onclick = function(event) {
             const modal = document.getElementById('productModal');
