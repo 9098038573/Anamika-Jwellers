@@ -240,7 +240,7 @@
         </div>
         <ul class="drawer-links">
             <li><a href="#" onclick="closeNavMenu(); filterByCategory('all'); return false;"><i class="fa-solid fa-house"></i> Home</a></li>
-            <li><a href="#"><i class="fa-solid fa-ring"></i> Collections</a></li>
+            <li><a href="go:Live radio"><i class="fa-solid fa-radio"></i> Live radio</a></li>
             <li><a href="#" onclick="closeNavMenu(); showFavorites(); return false;"><i class="fa-solid fa-heart" style="color: #e74c3c;"></i> My Favorites</a></li>
             <li><a href="https://wa.me/919977441399" target="_blank"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a></li>
             <li><a href="#" onclick="closeNavMenu(); openQrScanner(); return false;"><i class="fa-solid fa-qrcode"></i> Smart Scan</a></li>
@@ -631,14 +631,12 @@
             });
         }
 
-        // --- YAHAN GALTI THEEK KI GAYI HAI ---
         function initDisplay() {
             showingFavoritesOnly = false;
             document.getElementById('favoritesBanner').style.display = "none";
             const container = document.getElementById('main-product-list'); 
             container.innerHTML = "";
             
-            // YEH LINE JODI GAYI HAI: Taki wapas aane par scroll sahi se kaam kare
             document.getElementById('loader-ring').style.display = "block";
             
             const urlParams = new URLSearchParams(window.location.search);
@@ -650,7 +648,7 @@
             }
         }
 
-        let scrollObserver = null; // YEH NAYA ADD KIYA HAI MULTIPLE LOAD ROKNE KE LIYE
+        let scrollObserver = null; 
         function setupIntersectionObserver() {
             if (scrollObserver) {
                 scrollObserver.disconnect();
@@ -662,7 +660,6 @@
             }, { rootMargin: '300px' });
             scrollObserver.observe(document.getElementById('loader-ring'));
         }
-        // ------------------------------------
 
         function createCard(id, container) {
             const item = productData[id]; if(!item) return;
@@ -831,6 +828,7 @@
             }
         }
 
+        /* --- Advanced Pinch to Zoom & Point Double Tap Logic --- */
         const modalImg = document.getElementById('modalImg');
         let scale = 1;
         let panning = false;
@@ -838,6 +836,8 @@
         let startX = 0, startY = 0;
         let startDistance = 0;
         let initialScale = 1;
+        
+        let lastTapTime = 0; 
 
         function resetZoom() {
             scale = 1; pointX = 0; pointY = 0;
@@ -935,6 +935,43 @@
         modalImg.addEventListener('touchend', (e) => {
             if (e.touches.length < 2) { initialScale = scale; }
             if (e.touches.length === 0) { panning = false; }
+            
+            // --- Naya Point Double Tap Logic Yahan Add Kiya Hai ---
+            let currentTime = new Date().getTime();
+            let tapLength = currentTime - lastTapTime;
+            
+            if (tapLength < 300 && tapLength > 0 && e.changedTouches.length === 1) {
+                if (scale > 1) {
+                    resetZoom();
+                } else {
+                    scale = 2.5; // Zoom ka level
+                    
+                    const rect = modalImg.getBoundingClientRect();
+                    
+                    const tapX = e.changedTouches[0].clientX;
+                    const tapY = e.changedTouches[0].clientY;
+                    
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    
+                    const deltaX = tapX - centerX;
+                    const deltaY = tapY - centerY;
+                    
+                    let newPointX = -deltaX * (scale - 1);
+                    let newPointY = -deltaY * (scale - 1);
+                    
+                    const maxX = (rect.width * (scale - 1)) / 2;
+                    const maxY = (rect.height * (scale - 1)) / 2;
+                    
+                    pointX = Math.max(-maxX, Math.min(maxX, newPointX));
+                    pointY = Math.max(-maxY, Math.min(maxY, newPointY));
+
+                    modalImg.style.transition = 'transform 0.3s ease';
+                    modalImg.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+                }
+            }
+            lastTapTime = currentTime;
+            // --------------------------------------------------------
         });
     </script>
 </body>
