@@ -242,36 +242,56 @@
         .google-btn img { width: 20px; }
         .divider { display: flex; align-items: center; text-align: center; margin: 15px 0; }
         .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #eee; }
-        .divider span { padding: 0 10px; color: #999; font-size: 12px; font-weight: 600; }   </style>
+        .divider span { padding: 0 10px; color: #999; font-size: 12px; font-weight: 600; }
+    </style>
 </head>
-<body>
+<div id="loginModal" class="login-overlay" style="display: none;">              
+        <div class="login-box">   
+            
+              <div class="top-container">
+    <img src="https://i.ibb.co/hJn77tX9/logo.webp" class="top-bg-img" onload="this.style.opacity=1" alt="Anamika Jewellers Banner">
     
-<div id="loginModal" class="login-overlay" style="display: none;">
-        <div class="login-box">
-            <div class="top-container">
-        <h1>Anamika</h1>
-    </div>
-    
-    
-            <h2 id="authTitle">Login</h2>
-            <p style="font-size: 12px; color: #666; margin-bottom: 0px;"> </p>
-            <div style="padding: 40px;">
-            <input type="text" id="userNameInput" class="login-inpu" placeholder="Enter Your Name" style="border: none; border-bottom: 2px solid maroon; padding: 10px; width: 60%; font-size: 16px;">
-            
-            
-            
-            <input type="tel" id="userPhone" class="login-inpu" placeholder="Mobile Number" style="border: none; border-bottom: 2px solid maroon; padding: 10px; width: 60%; font-size: 16px;">
-            
-            <input type="password" id="userPass" class="login-inpu" placeholder="Password" style="border: none; border-bottom: 2px solid maroon; padding: 10px; width: 60%; font-size: 16px;"> 
-            
-            <button class="login-btn" id="authBtn" onclick="handleAuth()" style="margin-top:10px;">Login</button>
-            
-            <div style="color: #000000; font-size: 13px; cursor: pointer; margin-top: 15px; font-weight: 600; text-decoration: underline;" id="toggleLink" onclick="toggleAuthMode()">Naya account banayein? Sign Up</div>
-            <div style="color: #e74c3c; font-size: 12px; cursor: pointer; margin-top: 12px; font-weight: 600;" onclick="forgotPassword()">🔒 Password bhool gaye?</div>
+    <h1 style="position: relative; z-index: 2;"> </h1>
+</div>
 
+ 
+    <div style="align: centre;">     
+            <p style="font-size: 12px; color: grey;">Please login to view our exclusive collections.</p></div>            
+            <div style="padding: 20px 20px 5px 30px;  text-align: left;">                
+        <h2>Login / Sign Up</h3>
+        <p style="color: grey;">Enter mobile number for OTP</p>
+        </div>                                   
+                <div style="display: flex; align-items: center; justify-content: center; margin: 10px 20px 15px 30px;">
+    <span style="font-size: 16px; margin-right: 10px;">🇮🇳 </span>
+    <div id="phoneStep" style="width: 100%;">
+        <input type="tel" id="phoneNumber" class="login-input" placeholder="Enter Mobile Number" value="+91" style="width: 100%;">
+    </div>
+</div>
+
+<div style="padding: 0 30px; margin-bottom: 10px;">
+    <button class="login-btn" onclick="sendOTP()" id="sendOtpBtn">Get OTP</button>
+</div>
+            <div id="otpStep" style="display: none;">
+                <p style="font-size: 12px; color: #2e7d32; font-weight: 600;">OTP sent successfully!</p>
+                <input type="number" id="otpCode" class="login-input" placeholder="Enter 6-digit OTP">
+                <button class="login-btn" onclick="verifyOTP()" id="verifyOtpBtn">Verify & Login</button>
+                <button onclick="window.location.reload()" style="background:none; border:none; color:#d4af37; font-size:12px; margin-top:15px; cursor:pointer; font-weight:600;">Edit Number</button>
+            </div>           
+            <div id="recaptcha-container" style="margin-top: 0px; display: flex; justify-content: center;"></div> 
+            
+            <div class="divider"><span>OR</span></div>
+            
+            
+<button class="google-btn" onclick="signInWithGoogle()">
+                <img src="
+https://img.icons8.com/color/48/000000/google-logo.png
+" alt="G"> Continue with Google
+            </button>
+            
+            
             <p id="loginError" style="color: #e74c3c; font-size: 12px; margin-top: 15px; display: none; font-weight: 600; line-height: 1.4;"></p>
-        </div></div>
-        <div style="position: absolute; bottom: 20px; font-size: 11px; color: #888;">Anamika Jewellers - Since 1981</div>
+        </div>
+        <div style="position: absolute; bottom: 20px; left: 0; width: 100%; text-align: center; font-size: 11px; color: #888;">Anamika Jewellers - Since 1981</div>
     </div>
 
     <div class="header">
