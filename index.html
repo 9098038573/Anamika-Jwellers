@@ -1121,6 +1121,101 @@ https://img.icons8.com/color/48/000000/google-logo.png
             lastTapTime = currentTime;
             // --------------------------------------------------------
         });
+        // Variable jisme OTP confirmation ka data save hoga
+let confirmationResult;
+
+// 1. Get OTP Button par click hone par ye function chalega
+function sendOTP() {
+    let phoneNumber = document.getElementById('phoneNumber').value.trim();
+    let errorMsg = document.getElementById('loginError');
+    errorMsg.style.display = 'none';
+
+    // Check karna ki number sahi format me hai ya nahi (jaise +91...)
+    if(phoneNumber.length < 12) { // +91 aur 10 digit number
+        errorMsg.innerText = "Kripya +91 ke sath 10-digit ka sahi Mobile Number dalein.";
+        errorMsg.style.display = 'block';
+        return;
+    }
+
+    // reCAPTCHA setup karna (agar pehle se nahi hai)
+    if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+            'size': 'invisible', // Invisible rakha hai taki design kharab na ho
+            'callback': (response) => {
+                // reCAPTCHA verify ho gaya
+            }
+        });
+    }
+
+    let appVerifier = window.recaptchaVerifier;
+    let sendBtn = document.getElementById('sendOtpBtn');
+    sendBtn.innerText = "Sending OTP...";
+    sendBtn.disabled = true; // Button ko dubara click hone se rokna
+
+    // Firebase ko OTP bhejne ka command
+    auth.signInWithPhoneNumber(phoneNumber, appVerifier)
+        .then((confirmation) => {
+            // OTP chala gaya!
+            confirmationResult = confirmation;
+            
+            // Purana design hide karke naya OTP wala design show karna
+            document.getElementById('phoneStep').style.display = 'none';
+            sendBtn.style.display = 'none'; // Get OTP button gayab
+            document.getElementById('recaptcha-container').style.display = 'none';
+            document.getElementById('otpStep').style.display = 'block'; // OTP box dikhao
+            
+        }).catch((error) => {
+            // Agar OTP bhejne me koi dikkat aayi
+            errorMsg.innerText = "OTP bhejne mein error: " + error.message;
+            errorMsg.style.display = 'block';
+            sendBtn.innerText = "Get OTP";
+            sendBtn.disabled = false;
+            console.error("SMS Error:", error);
+            
+            // Error aane par reCAPTCHA reset karna padta hai
+            if (window.recaptchaVerifier) {
+                window.recaptchaVerifier.render().then(function(widgetId) {
+                    grecaptcha.reset(widgetId);
+                });
+            }
+        });
+}
+
+// 2. Verify & Login Button par click hone par ye function chalega
+function verifyOTP() {
+    let code = document.getElementById('otpCode').value.trim();
+    let errorMsg = document.getElementById('loginError');
+    errorMsg.style.display = 'none';
+
+    if (code.length !== 6) {
+        errorMsg.innerText = "Kripya 6-digit ka sahi OTP dalein.";
+        errorMsg.style.display = 'block';
+        return;
+    }
+
+    let verifyBtn = document.getElementById('verifyOtpBtn');
+    verifyBtn.innerText = "Verifying...";
+    verifyBtn.disabled = true;
+
+    // Firebase ko OTP verify karne ka command
+    confirmationResult.confirm(code).then((result) => {
+        // OTP sahi hai aur User login ho gaya!
+        let user = result.user;
+        console.log("Phone Login Successful:", user.phoneNumber);
+        
+        // Login hote hi aapka pehle se likha hua 'auth.onAuthStateChanged' 
+        // function trigger ho jayega aur Modal apne aap band ho jayega.
+        
+    }).catch((error) => {
+        // Agar OTP galat hai
+        errorMsg.innerText = "Galat OTP ya expire ho gaya hai.";
+        errorMsg.style.display = 'block';
+        verifyBtn.innerText = "Verify & Login";
+        verifyBtn.disabled = false;
+        console.error("Verify Error:", error);
+    });
+}
+
     </script>
 </body>
 </html>
