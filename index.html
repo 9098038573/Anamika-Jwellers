@@ -1043,12 +1043,7 @@
             const productLink = `https://anamikajwellers-dabra.github.io/anamika/product-detail.html?id=${id}`;
             const waMsg = `Hi Anamika Jewellers, mujhe is item ki enquiry karni hai:\n\n*Item:* ${item.title || id.toUpperCase()}\n*Code:* ${id.toUpperCase()}\n*Link:* ${productLink}`;
             document.getElementById('modalWaBtn').href = `https://wa.me/919977441399?text=${encodeURIComponent(waMsg)}`;
-            
-                        let faviconLink = document.querySelector("link[rel~='icon']");
-            if (!faviconLink) { faviconLink = document.createElement('link'); faviconLink.rel = 'icon'; document.head.appendChild(faviconLink); }
-            faviconLink.href = mediaArr.length > 0 ? mediaArr[0] : 'https://via.placeholder.com/150';
-
-            
+                
             window.currentShareTitle = item.title || id.toUpperCase();
             window.currentShareText = `Yeh design dekhein Anamika Jewellers se:\n\n*${item.title || id.toUpperCase()}*`;
             window.currentShareUrl = productLink;
