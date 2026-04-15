@@ -8,7 +8,8 @@
     <link rel="preconnect" href="https://anamika-jwellers-default-rtdb.firebaseio.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-
+    <meta property="og:image" content="https://i.ibb.co/RT7prNrC/Format-Convert-20260324-170933-3110.png">
+    <link rel="icon" href="https://i.ibb.co/RT7prNrC/Format-Convert-20260324-170933-3110.png">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Poppins:wght@300;400;600&family=Bitter:wght@400;700&display=swap" rel="stylesheet">  
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
@@ -1042,15 +1043,10 @@
             const waMsg = `Hi Anamika Jewellers, mujhe is item ki enquiry karni hai:\n\n*Item:* ${item.title || id.toUpperCase()}\n*Code:* ${id.toUpperCase()}\n*Link:* ${productLink}`;
             document.getElementById('modalWaBtn').href = `https://wa.me/919977441399?text=${encodeURIComponent(waMsg)}`;
             
-            let shareImageUrl = mediaArr.length > 0 ? mediaArr[0] : (item.image || 'https://via.placeholder.com/150');
-            
-            let faviconLink = document.querySelector("link[rel~='icon']");
+                        let faviconLink = document.querySelector("link[rel~='icon']");
             if (!faviconLink) { faviconLink = document.createElement('link'); faviconLink.rel = 'icon'; document.head.appendChild(faviconLink); }
-            faviconLink.href = shareImageUrl;
+            faviconLink.href = mediaArr.length > 0 ? mediaArr[0] : 'https://via.placeholder.com/150';
 
-            let ogImage = document.querySelector('meta[property="og:image"]');
-            if (!ogImage) { ogImage = document.createElement('meta'); ogImage.setAttribute('property', 'og:image'); document.head.appendChild(ogImage); }
-            ogImage.setAttribute('content', shareImageUrl);
             
             window.currentShareTitle = item.title || id.toUpperCase();
             window.currentShareText = `Yeh design dekhein Anamika Jewellers se:\n\n*${item.title || id.toUpperCase()}*`;
